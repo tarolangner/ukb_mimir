@@ -1,6 +1,7 @@
 # MIMIR
 *An Inference Engine for UK Biobank Neck-to-knee Body MRI*
-*Work in progress*
+
+**Work in progress**
 
 This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the UK Biobank study. The ***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR) is enabled by an ensemble of convolutional neural networks for mean-variance regression.
 
