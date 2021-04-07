@@ -1,9 +1,9 @@
 # MIMIR
 *An Inference Engine for UK Biobank Neck-to-knee Body MRI*
 
-**Work in progress**
+**Note: This repositry is still work in progress**
 
-This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the UK Biobank study. The ***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR) is enabled by an ensemble of convolutional neural networks for mean-variance regression.
+This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the UK Biobank study. The ***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR) is enabled by convolutional neural networks for mean-variance regression.
 
 Learn more about [the UK Biobank Imaging Study](https://www.nature.com/articles/s41467-020-15948-9) and the [Uncertainty-aware deep regression method](https://arxiv.org/abs/2101.06963).
 
@@ -19,15 +19,15 @@ It can estimate sex, age, height, weight and several emulated measurements toget
 
 2) *How to get image data?*
 
-The image data of UK Biobank can only be shared with authorized research applications. You can apply for access [https://www.ukbiobank.ac.uk/enable-your-research/apply-for-access](here). Within UK Biobank, these images are listed under field *20201 - 	Dixon technique for internal fat - DICOM*.
+The image data of UK Biobank can only be shared with authorized research applications. You can apply for access [here](https://www.ukbiobank.ac.uk/enable-your-research/apply-for-access). Within UK Biobank, these images are listed under field *20201 - 	Dixon technique for internal fat - DICOM*.
 
 3) *Will this work for any medical image data?*
 
-The approach has only been validated for neck-to-knee body MRI of about 40,000 UK Biobank subjects (44-82 years old, 95% self-reported white British ethnicity). Data of a different imaging modality, device type, or demographic will likely result in deteriorated performance. However, if the imaging protocol was accurately replicated outside the scope of UK Biobank for a similar demographic, the inference engine should be expected to work.
+The approach has only been validated for neck-to-knee body MRI of about 40,000 UK Biobank subjects (44-82 years old, 95% self-reported white British ethnicity). Data of a different imaging modality, device type, or demographic will likely result in deteriorated performance. However, if the imaging protocol was accurately replicated outside the scope of UK Biobank for a similar demographic, similar performance might be possible.
 
 4) *How does it work?*
 
-In a nut shell, the inference engine compresses the volumetric MRI to a 2d format and applies ten ResNet50 instances to it, which predict both the mean and variance of each given measurement for any given subject. Their predictions are aggregated to obtain an output value and an estimate of predictive uncertainty, which yields the confidence interval. Find user instructions below.
+In a nut shell, the inference engine compresses the volumetric MRI to a 2d format and applies ResNet50 instances to it, which predict both the mean and variance of each given measurement for any given subject. They predict the target values and an estimate of predictive uncertainty, which yields a confidence interval. Find user instructions below.
 
 5) *How was it created and validated?*
 
@@ -40,10 +40,8 @@ You can try the contact details listed at the end of this file.
 ---
 
 ### Instructions:
--TODO (also snapshot link)
+-TODO, modules
 
 ---
 
-TODO: Contacts
-
-
+For any questions and feedback, feel free to contact taro.langner(at).surgsci.uu.se

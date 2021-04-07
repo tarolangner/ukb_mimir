@@ -13,7 +13,7 @@ import compressDicom
 
 def main(argv):
 
-    # Try on visit3
+    # Try on validation set
     if True:
         path_ids = "/media/taro/DATA/Taro/Projects/mimir/regression/networks/Mimir_m72_10fold_resnet50_lowLr10kEarlyHalf_categBodycomp/subset_0/eval/output_it_1000_t0.txt"
         with open(path_ids) as f: entries = f.readlines()
@@ -48,7 +48,7 @@ def main(argv):
         "modules/module_bodycomp/"
     ]
 
-    path_out = "inference_results/"
+    path_out = "inference_results2/"
 
     B = 16
     infer(paths_dicoms, path_cache, paths_modules, path_out, B)
@@ -109,6 +109,7 @@ def applyModules(paths_img, path_cache, paths_modules, path_out, B):
 # Revert standardization, correct scale and calibrate
 def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
 
+    #
     ## Parse standardization parameters
     path_stand = path_module + "/standardization_parameters.txt"
     with open(path_stand) as f: entries = f.readlines()
@@ -125,8 +126,22 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
         net_means[:, t] = net_means[:, t] * stand_stdvs[t] + stand_means[t]
         net_vars[:, t] = net_vars[:, t] * np.square(stand_stdvs[t]) # Square for variance from stdev
 
-    ## TODO: Apply factors for calibration correction
 
+    #
+    ## Apply factors for calibration correction
+    path_cal = path_module + "/calibration_factors.txt"
+    with open(path_cal) as f: entries = f.readlines()
+    entries.pop(0)
+
+    # Get original mean and standard deviation of training data
+    calibration_factors = np.array([f.split(",")[0] for f in entries]).astype("float")
+
+    # Scale variances thus that the uncertainty estimates are calibrated
+    for t in range(T):
+        net_vars[:, t] = net_vars[:, t] * calibration_factors[t]
+
+
+    #
     ## Parse target metadata
     path_meta = path_module + "/metadata.txt"
     with open(path_meta) as f: entries = f.readlines()
@@ -144,6 +159,7 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
         net_vars[:, t] /= target_divisors[t]
 
 
+    #
     ## Write
     names = [os.path.basename(f).replace(".npy", "") for f in paths_img]
 
