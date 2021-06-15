@@ -14,7 +14,7 @@ import compressDicom
 def main(argv):
 
     # Try on validation set
-    if True:
+    if False:
         path_ids = "/media/taro/DATA/Taro/Projects/mimir/regression/networks/Mimir_m72_10fold_resnet50_lowLr10kEarlyHalf_categBodycomp/subset_0/eval/output_it_1000_t0.txt"
         with open(path_ids) as f: entries = f.readlines()
         entries.pop(0)
@@ -26,7 +26,7 @@ def main(argv):
         paths_dicoms = paths_dicoms[:100]
 
     # Try on visit3
-    if False:
+    if True:
         path_ids = "/media/taro/DATA/Taro/UKBiobank/Return/QC/visit3/ids_accepted_repeatImaging.txt"
         with open(path_ids) as f: entries = f.readlines()
 
@@ -48,7 +48,7 @@ def main(argv):
         "modules/module_bodycomp/"
     ]
 
-    path_out = "inference_results2/"
+    path_out = "inference_results/repeat_bodycomp/"
 
     B = 16
     infer(paths_dicoms, path_cache, paths_modules, path_out, B)
