@@ -35,6 +35,7 @@ In a nut shell, the inference engine compresses the volumetric MRI to a 2d forma
 
 Additional documentation and code will be provided in the *training* subdirectory.
 
+
 7) *I have technical/ethical/spiritual complaints and want to speak to the manager*
 
 You can try the contact details listed at the end of this file.
