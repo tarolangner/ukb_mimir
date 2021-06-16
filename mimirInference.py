@@ -13,6 +13,27 @@ import compressDicom
 
 def main(argv):
 
+    #print(len(argv))
+
+    #print(argv)
+
+    #path_ids = 
+    #path_dicoms = 
+    #path_cache = "cached_images/"
+    #paths_modules = [
+    #    "modules/module_organs/"
+    #    "modules/module_bodycomp/"
+    #]
+
+    #path_out = "inference_results/repeat_bodycomp/"
+    #B = 16
+
+    
+    mainTest()
+
+
+def mainTest():
+
     # Try on validation set
     if False:
         path_ids = "/media/taro/DATA/Taro/Projects/mimir/regression/networks/Mimir_m72_10fold_resnet50_lowLr10kEarlyHalf_categBodycomp/subset_0/eval/output_it_1000_t0.txt"
@@ -44,11 +65,13 @@ def main(argv):
     path_cache = "cached_images/"
 
     paths_modules = [
-        #"modules/module_organs/"
-        "modules/module_bodycomp/"
+        "modules/module_organs/",
+        "modules/module_bodycomp/",
+        "modules/module_age/",
+        "modules/module_experimental/"
     ]
 
-    path_out = "inference_results/repeat_bodycomp/"
+    path_out = "inference_results/test/"
 
     B = 16
     infer(paths_dicoms, path_cache, paths_modules, path_out, B)
@@ -129,7 +152,7 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
 
     #
     ## Apply factors for calibration correction
-    path_cal = path_module + "/calibration_factors.txt"
+    path_cal = path_module + "calibration_factors.txt"
     with open(path_cal) as f: entries = f.readlines()
     entries.pop(0)
 
@@ -143,7 +166,7 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
 
     #
     ## Parse target metadata
-    path_meta = path_module + "/metadata.txt"
+    path_meta = path_module + "metadata.txt"
     with open(path_meta) as f: entries = f.readlines()
     entries.pop(0)
 
@@ -162,8 +185,6 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
     #
     ## Write
     names = [os.path.basename(f).replace(".npy", "") for f in paths_img]
-
-    # TODO: Write meta-header?
 
     print("    Writing predictions to {}...".format(path_out))
     with open(path_out + "/predictions.csv", "w") as f:
