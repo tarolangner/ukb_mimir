@@ -43,7 +43,20 @@ You can try the contact details listed at the end of this file.
 ---
 
 ### Instructions:
--TODO, modules
+
+1) Download the inference modules from [the shared folder at Uppsala Sunet Box](https://uppsala.box.com/s/k04jl8npr3792urscue2u4ov47jmeahb).
+Unpack them into "modules/".
+
+2) Optionally, download UK Biobank Return dataset 3072 for annotations of the UK Biobank neck-to-knee body MRI. It contains annotations for all those cases with artefacts that should be excluded.
+
+3) In *mimirInference.py* call *infer* with:
+    * A list of paths to the UK Biobank neck-to-knee body MRI dicom files (field 20201)
+    * A path to a temporary caching folder for the 2d representations
+    * A list of paths to the modules to be applied 
+    * An output path for the csv files with predictions
+    * The batch size B (set as high as your GPU allows for fastest speed)
+
+4) Find the predictions in the output folder. The predicted variances can be used to calculate confidence intervals.
 
 ---
 
