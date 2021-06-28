@@ -43,7 +43,6 @@ c_datatype_nrrd = "float"    # See: https://github.com/mhe/pynrrd/blob/master/nr
 c_use_gpu = True # If yes, use numba for gpu access, otherwise use scipy on cpu
 
 
-#def dicomToVolume(input_path_zip, output_path, version_tag):
 def compressToMip(input_path_zip, output_path):
 
     if not os.path.exists(os.path.dirname(output_path)): os.makedirs(os.path.dirname(output_path))
@@ -195,7 +194,7 @@ def calculateFractions(volume_w, volume_f):
 
     t = np.mean(ts)
 
-    volume_mask = np.ones(volume_w.shape).astype("uint8")
+    volume_mask = np.ones(volume_w.shape).astype("bool")
     volume_mask[volume_sum < t] = 0
 
     # Get connected components to isolate background only (slow)
