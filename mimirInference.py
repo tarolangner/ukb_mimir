@@ -13,54 +13,21 @@ import compressDicom
 
 def main(argv):
 
-    #print(len(argv))
-
-    #print(argv)
-
-    #path_ids = 
-    #path_dicoms = 
-    #path_cache = "cached_images/"
-    #paths_modules = [
-    #    "modules/module_organs/"
-    #    "modules/module_bodycomp/"
-    #]
-
-    #path_out = "inference_results/repeat_bodycomp/"
-    #B = 16
-
-    
     mainTest()
 
 
 def mainTest():
 
-    # Try on validation set
-    if False:
-        path_ids = "/media/taro/DATA/Taro/Projects/mimir/regression/networks/Mimir_m72_10fold_resnet50_lowLr10kEarlyHalf_categBodycomp/subset_0/eval/output_it_1000_t0.txt"
-        with open(path_ids) as f: entries = f.readlines()
-        entries.pop(0)
+    # Full inference run
+    path_ids = "/media/taro/DATA/Taro/UKBiobank/Return/QC/visit2/ids_good.txt"
+    with open(path_ids) as f: entries = f.readlines()
+    entries.pop(0)
 
-        ids = [f.split(",")[0].split("/")[-1].split(".")[0] for f in entries]
-        path_dicom_prefix = "/media/veracrypt1/UKB_DICOM/"
-        paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + "_20201_2_0.zip" for f in ids]
+    ids = [f.split(",")[0].split("/")[-1].split(".")[0] for f in entries]
+    path_dicom_prefix = "/media/veracrypt1/UKB_DICOM/"
+    paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + "_20201_2_0.zip" for f in ids]
 
-        paths_dicoms = paths_dicoms[:100]
-
-    # Try on visit3
-    if True:
-        path_ids = "/media/taro/DATA/Taro/UKBiobank/Return/QC/visit3/ids_accepted_repeatImaging.txt"
-        with open(path_ids) as f: entries = f.readlines()
-
-        path_dicom_prefix = "/media/taro/DATA/Taro/UKBiobank/download/dicom_repeat/"
-        paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + "_20201_3_0.zip" for f in entries]
-
-        paths_dicoms = paths_dicoms[:100]
-
-    if False:
-        paths_dicoms = [
-            "/media/veracrypt1/UKB_DICOM/1062304_20201_2_0.zip",
-            "/media/veracrypt1/UKB_DICOM/1195626_20201_2_0.zip"
-            ]
+    #paths_dicoms = paths_dicoms[:3000]
 
     path_cache = "cached_images/"
 
@@ -71,7 +38,7 @@ def mainTest():
         "modules/module_experimental/"
     ]
 
-    path_out = "inference_results/test/"
+    path_out = "inference_results/inference_completeVisit2_all/"
 
     B = 16
     infer(paths_dicoms, path_cache, paths_modules, path_out, B)
@@ -90,10 +57,10 @@ def infer(paths_dicoms, path_cache, paths_modules, path_out, B):
     else:
         os.mkdir(path_out)
 
-    print("# Preparing data")
+    print("# Pre-processing data")
     paths_img = prepareCache(paths_dicoms, path_cache)
 
-    print("# Applying modules")
+    print("# Applying inference modules")
     applyModules(paths_img, path_cache, paths_modules, path_out, B)
 
     time_end = time.time()
@@ -211,7 +178,7 @@ def applyNetwork(net, paths_img, B):
 
     T = int(net.fc.out_features / 2)
 
-    loader = getDataloader(paths_img, B)
+    loader = getMipLoader(paths_img, B)
 
     device = torch.device("cuda")
 
@@ -254,7 +221,7 @@ def applyNetwork(net, paths_img, B):
     return (net_means, net_vars)
 
 
-def getDataloader(paths_img, B):
+def getMipLoader(paths_img, B):
 
     dataset = MipDataset(paths_img)
 
@@ -337,14 +304,14 @@ def prepareCache(paths_dicoms, path_cache):
         
     else:
         print("    Of {} input DICOMs, {} are not yet cached at \"{}\"".format(len(paths_dicoms), len(paths_uncached), path_cache))
-        print("    This will require an additional {} MB".format(len(paths_uncached) * 0.2))
+        print("    This will require an additional {0:0.1f} MB".format(len(paths_uncached) * 0.2))
 
         print("    Caching missing images...")
 
         names_failed = cacheImages(paths_uncached, path_cache)
 
         if names_failed:
-            print("    WARNING: {} DICOMs could not be converted and will be excluded from this run".format(len(paths_failed)))
+            print("    WARNING: {} DICOMs could not be converted and will be excluded from this run".format(len(names_failed)))
             
     # Get paths to all DICOMs that have been successfully compressed
     paths_img = [path_cache + f + ".npy" for f in names if f not in names_failed]
@@ -355,7 +322,7 @@ def prepareCache(paths_dicoms, path_cache):
     return paths_img
 
 
-def cacheImages(paths_uncached, path_cache):
+def cacheImagesOld(paths_uncached, path_cache):
 
     names = [os.path.basename(f).split(".")[0] for f in paths_uncached]
 
@@ -365,13 +332,54 @@ def cacheImages(paths_uncached, path_cache):
 
     for i in range(N):
 
-        print("        Compressing image {0} ({1:0.1f} % done)".format(i+1, 100* i / N))
+        print("        Compressing image {0} ({1:0.1f}% done)".format(i+1, 100* i / N))
 
         try:
+            #print(names[i])
             compressDicom.compressToMip(paths_uncached[i], path_cache + names[i] + ".npy")
         except:
             names_failed.append(names[i])
             print("            ERROR: Compression of DICOM failed: {}".format(names_failed[i]))
+
+    return names_failed
+
+
+def getDicomLoader(paths_dicom):
+
+    dataset = compressDicom.DicomDataset(paths_dicom)
+
+    loader = torch.utils.data.DataLoader(dataset,
+        num_workers=8,
+        batch_size=1,
+        shuffle=False,
+        pin_memory=False,
+        worker_init_fn = lambda id: np.random.seed(torch.initial_seed() // 2**32 + id) )
+
+    return loader
+
+
+def cacheImages(paths_uncached, path_cache):
+
+    loader = getDicomLoader(paths_uncached)
+
+    N = len(paths_uncached)
+    i = 0
+
+    names_failed = []
+
+    #
+    for mip_out, dicom_path, error_code in loader:
+
+        i += 1
+        name = os.path.basename(dicom_path[0]).split(".")[0]
+
+        if error_code[0]:
+            names_failed.append(name)
+            print("        Something went wrong with subject {}".format(name))
+        else:
+            print("        Compressed image {0} ({1:0.3f}% done)".format(i, 100* i / N))
+            np.save(path_cache + name + ".npy", mip_out.numpy()[0])
+
 
     return names_failed
 
