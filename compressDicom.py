@@ -232,16 +232,16 @@ def fuseVolume(W, W_end, W_size, voxel_data, overlaps):
     return volume
 
 
-# Locate center or quarter of body mass along axis
+# Return slice index along given axis at which body mask sums up to specified mass
+# Use empirical guess for speed
 def getSliceOfMass(mass, mask, axis):
 
-    com_i = 0
-
+    com_i = 0 
     shifts = np.array(mask.shape)
 
     for i in range(mask.shape[axis]):
         shifts[axis] = i
-        mass_i = np.count_nonzero(mask[:shifts[0], :shifts[1], :shifts[2]])
+        mass_i = np.sum(mask[:shifts[0], :shifts[1], :shifts[2]])
         if mass_i >= mass:
             com_i = i
             break
@@ -714,8 +714,6 @@ def stationsFromDicom(input_path_zip):
     positions = []
     pixel_spacings = []
     times = []
-
-    time_x = time.time()
 
     #
     z = zipfile.ZipFile(input_path_zip)

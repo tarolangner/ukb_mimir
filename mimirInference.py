@@ -18,14 +18,20 @@ def main(argv):
 
 def mainTest():
 
-    # Full inference run
-    path_ids = "/media/taro/DATA/Taro/UKBiobank/Return/QC/visit2/ids_good.txt"
-    with open(path_ids) as f: entries = f.readlines()
-    entries.pop(0)
+    if True:
+        # Full inference run
+        path_ids = "/media/taro/DATA/Taro/UKBiobank/Return/QC/visit2/ids_good.txt"
+        with open(path_ids) as f: entries = f.readlines()
+        entries.pop(0)
 
-    ids = [f.split(",")[0].split("/")[-1].split(".")[0] for f in entries]
-    path_dicom_prefix = "/media/veracrypt1/UKB_DICOM/"
-    paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + "_20201_2_0.zip" for f in ids]
+        ids = [f.split(",")[0].split("/")[-1].split(".")[0] for f in entries]
+        path_dicom_prefix = "/media/veracrypt1/UKB_DICOM/"
+        paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + "_20201_2_0.zip" for f in ids]
+
+        paths_dicoms = paths_dicoms[:100]
+
+    if False:
+        paths_dicoms = ["/media/taro/DATA/Taro/Projects/mimir/ukb_mimir/test_image/0000000_20201_2_0.zip"]
 
     #paths_dicoms = paths_dicoms[:3000]
 
@@ -38,7 +44,7 @@ def mainTest():
         "modules/module_experimental/"
     ]
 
-    path_out = "inference_results/inference_completeVisit2_all/"
+    path_out = "inference_results/inference_test100/"
 
     B = 16
     infer(paths_dicoms, path_cache, paths_modules, path_out, B)
@@ -123,7 +129,7 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
     with open(path_cal) as f: entries = f.readlines()
     entries.pop(0)
 
-    # Get original mean and standard deviation of training data
+    # Get factors for scaling of predicted variances
     calibration_factors = np.array([f.split(",")[0] for f in entries]).astype("float")
 
     # Scale variances thus that the uncertainty estimates are calibrated
