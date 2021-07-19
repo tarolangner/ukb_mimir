@@ -3,7 +3,7 @@
 
 *Note: This repository is still under development*
 
-This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the UK Biobank study. The ***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR) is enabled by convolutional neural networks for mean-variance regression.
+This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the UK Biobank study. This [***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR)](https://arxiv.org/abs/2106.11731) is enabled by convolutional neural networks for mean-variance regression.
 
 Learn more about [the UK Biobank Imaging Study](https://www.nature.com/articles/s41467-020-15948-9) and the [uncertainty-aware deep regression method here](https://arxiv.org/abs/2101.06963).
 
@@ -13,11 +13,11 @@ Learn more about [the UK Biobank Imaging Study](https://www.nature.com/articles/
 
 1) *What does it do?*
 
-By deploying the PyTorch code of this repository, a wide range of metadata and emulated measurements can be inferred from one or more DICOM files with MRI data of the neck-to-knee body MRI imaging protocol as used by UK Biobank. Note that this experimental software is used at your own risk, is provided with no guarantees of anything, and is not a certified medical diagnostic tool.
+This PyTorch implementation can be applied to neck-to-knee body MRI of UK Biobank to estimate and emulate a wide range of measurements. Note that this experimental software is used at your own risk, is provided with no guarantees of anything, and is not a certified medical diagnostic tool.
 
 2) *Which properties can the inference predict?*
 
-This inference engine can estimate sex, age, height, weight and several emulated measurements together with confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation here (TODO: LINK).
+This inference engine can estimate sex, age, height, weight and several emulated measurements together with confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation [here](https://github.com/tarolangner/ukb_mimir/blob/main/documentation/validation/mimir_validation.pdf).
 
 3) *How to get image data?*
 
