@@ -3,9 +3,9 @@
 
 *Note: This repository is still under development*
 
-This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the UK Biobank study. This [***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR)](https://arxiv.org/abs/2106.11731) is enabled by convolutional neural networks for mean-variance regression.
+This repository implements an experimental software for fully automated analysis of magnetic resonance images (MRI) of the [UK Biobank](https://www.ukbiobank.ac.uk/).   [***M**edical **I**nference on **M**agnetic resonance images with **I**mage-based **R**egression* (MIMIR)](https://arxiv.org/abs/2106.11731) as implemented here utilizes convolutional neural networks for mean-variance regression.
 
-Learn more about [the UK Biobank Imaging Study](https://www.nature.com/articles/s41467-020-15948-9) and the [uncertainty-aware deep regression method here](https://arxiv.org/abs/2101.06963).
+Learn more about [the UK Biobank Imaging Study](https://www.nature.com/articles/s41467-020-15948-9) and the [uncertainty-aware deep regression method implemented here](https://arxiv.org/abs/2101.06963).
 
 
 ---
@@ -17,15 +17,16 @@ This PyTorch implementation can be applied to neck-to-knee body MRI of UK Bioban
 
 2) *Which properties can the inference predict?*
 
-This inference engine can estimate sex, age, height, weight and several emulated measurements together with confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation [here](https://github.com/tarolangner/ukb_mimir/blob/main/documentation/validation/mimir_validation.pdf).
+This inference engine can estimate sex, age, height, weight, and several emulated measurements together with individual confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation [here](https://github.com/tarolangner/ukb_mimir/blob/main/documentation/validation/mimir_validation.pdf).
 
 3) *How to get image data?*
 
 The image data of UK Biobank can only be shared with authorized research applications. You can [apply for access here](https://www.ukbiobank.ac.uk/enable-your-research/apply-for-access). Within UK Biobank, these images are listed under field *20201 - Dixon technique for internal fat - DICOM*.
+If you do not have access but wish to test the pipeline, you can apply it to one test image that is [freely available here](https://biobank.ndph.ox.ac.uk/showcase/refer.cgi?id=20201).
 
 4) *Will this work for any medical image data?*
 
-The approach has only been validated for neck-to-knee body MRI of about 40,000 UK Biobank subjects (44-82 years old, 95% self-reported white British ethnicity). Data of a different imaging modality, device type, or demographic will likely result in deteriorated performance. However, if the imaging protocol was accurately replicated outside the scope of UK Biobank for a similar demographic, similar performance might be possible.
+The approach has only been validated for neck-to-knee body MRI of about 40,000 UK Biobank subjects (44-82 years old, 95% self-reported white British ethnicity). Data from other imaging modalities, device types, or demographics will likely result in deteriorated performance. However, reproducing the imaging protocol on similar demographics should enable viable results.
 
 5) *How does it work?*
 
@@ -33,10 +34,9 @@ In a nut shell, the inference engine compresses the volumetric MRI to a 2d forma
 
 6) *How was it created and validated?*
 
-Additional documentation and code will be provided in the *training* subdirectory.
+Code for training and evaluating the underlying code is provided in the *cross_validation* sudirectory, together with additional documentation.
 
-
-7) *I have technical/ethical/spiritual complaints and want to speak to the manager*
+7) *I have technical/ethical/spiritual concerns and wish to speak to the manager*
 
 You can try the contact details listed at the end of this file.
 
