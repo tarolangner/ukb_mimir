@@ -5,7 +5,7 @@ import sys
 
 import scipy
 
-import plot_compare
+import plotCompare
 
 from sklearn.metrics import r2_score
 
@@ -101,8 +101,11 @@ def aggregateValidation(output_path, target_paths, I, save_step, runtime):
     mae = np.zeros((S, T))
     mape = np.zeros((S, T))
 
+    calibration_factors = np.zeros((S, T))
+
     # Number of samples per target
     counts = np.zeros(T).astype("int")
+
 
     # Aggregate per target
     for t in range(T):
@@ -129,6 +132,8 @@ def aggregateValidation(output_path, target_paths, I, save_step, runtime):
             (img_names, values_gt[:], values_out_means[s, :], values_out_vars[s, :]) = readFileMetrics(output_path + "/eval/output_it_{}_t{}.txt".format(iterations[s], t))
             (r2[s, t], icc[s, t], mae[s, t], mape[s, t]) = getAgreementMetrics(values_gt, values_out_means[s, :])
 
+            calibration_factors[s, t] = determineCalibrationFactor(values_gt, values_out_means[s, :], values_out_vars[s, :])
+
         # Plot validation curve
         plotCurve(icc[:, t], "ICC", iterations, output_path + "validation_curve_t{}_{}.png".format(t, name_t))
 
@@ -145,7 +150,56 @@ def aggregateValidation(output_path, target_paths, I, save_step, runtime):
     # Write target-wise aggregate metrics for final network snapshots
     writeSummaryMetrics(output_path, target_paths, counts, icc, r2, mae, mape)
 
+    # Write calibration factors
+    with open(output_path + "calibration_factors.txt", "w") as f:
+        f.write("iteration")
+        for t in range(T): f.write(f",t_{t}")
+        f.write("\n")
 
+        for s in range(S):
+            it = int((s+1) * save_step) 
+            f.write(f"{it}")
+
+            for t in range(T): 
+                f.write(f",{calibration_factors[s, t]}")
+            f.write("\n")
+
+
+
+# Determine scaling factor that incurs lowest calibration error
+def annealCalibration(abs_difs, var):
+
+    factor = 1
+
+    (x, y) = getCalibrationCurve(abs_difs, var)
+
+    calib_error = np.sum(x - y)
+
+    counter = 0
+    while abs(calib_error) > 0.05 and counter < 100:
+
+        if calib_error < 0:
+            factor /= 2 * abs(calib_error)
+        else:
+            factor *= 2 * abs(calib_error)
+
+        (x, y) = getCalibrationCurve(abs_difs, var*factor)
+
+        calib_error = np.sum(x - y)
+
+        counter += 1
+
+    return factor
+
+
+def determineCalibrationFactor(values_gt, values_out_means, values_out_vars):
+
+    mask = np.invert(np.isnan(values_gt))
+    factor = annealCalibration(np.abs(values_gt[mask] - values_out_means[mask]),  values_out_vars[mask])
+
+    return factor
+
+    
 # Write target-wise evaluation metrics for final iteration
 def writeSummaryMetrics(output_path, target_paths, counts, icc, r2, mae, mape):
 
@@ -229,7 +283,7 @@ def plotAgreement(iterations, values_gt, values_out, network_path, t, name, unit
 
         #
         mask = np.invert(np.isnan(values_gt))
-        plot_compare.plotScatter(values_gt[mask], values_out[s][mask], path_out, name, unit)
+        plotCompare.plotScatter(values_gt[mask], values_out[s][mask], path_out, name, unit)
 
 
 def plotCurve(values, metric_name, iterations, out_path):
@@ -376,7 +430,6 @@ def getAuce(values_p_pred, fractions_pred):
 def plotCalibrationCurves(iterations, values_gt, values_out_means, values_out_vars, output_path, t, s, ax):
 
     mask = np.invert(np.isnan(values_gt))
-
     (values_p, fractions) = getCalibrationCurve(np.abs(values_gt[mask] - values_out_means[s, mask]),  values_out_vars[s, mask])
 
     auce = getAuce(values_p, fractions)

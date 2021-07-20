@@ -20,14 +20,21 @@ import dataLoading
 #
 def main(argv):
 
-    output_path = "../networks/Mimir_m4_10fold/"
+    output_path = "../networks/Mimir_m4_traintest/"
     imageset_path = "/home/taro/DL_imagesets/UKB_dual_projFF_uint8/"
 
-    target_paths = ["../targets/UKB_dual_projFF_uint8_AtlasVisceralAdiposeTissue_10fold/",
-                    "../targets/UKB_dual_projFF_uint8_AtlasAbdominalSubcutaneousAdiposeTissue_10fold/",
-                    "../targets/UKB_dual_projFF_uint8_AtlasLiverFat_10fold/",
-                    "../targets/UKB_dual_projFF_uint8_AtlasThighMuscle_10fold/"]
+    if False:
+        target_paths = ["../targets/UKB_dual_projFF_uint8_AtlasVisceralAdiposeTissue_10fold/",
+                        "../targets/UKB_dual_projFF_uint8_AtlasAbdominalSubcutaneousAdiposeTissue_10fold/",
+                        "../targets/UKB_dual_projFF_uint8_AtlasLiverFat_10fold/",
+                        "../targets/UKB_dual_projFF_uint8_AtlasThighMuscle_10fold/"]
 
+    if True:
+        target_paths = ["../targets/UKB_dual_projFF_uint8_AtlasVisceralAdiposeTissue_traintest/",
+                        "../targets/UKB_dual_projFF_uint8_AtlasAbdominalSubcutaneousAdiposeTissue_traintest/",
+                        "../targets/UKB_dual_projFF_uint8_AtlasLiverFat_traintest/",
+                        "../targets/UKB_dual_projFF_uint8_AtlasThighMuscle_traintest/"]
+                        
     print("Found {} targets".format(len(target_paths)))
 
     I = 10000 # training iterations
@@ -38,10 +45,10 @@ def main(argv):
     R = 0.00005 # learning rate
 
     do_train = False
-    metrics_only = True
+    metrics_only = False
 
     start_k = 0 # first cross-validation split
-    end_k = 10 # last cross-validation split
+    end_k = 1 # last cross-validation split
 
     # Augmentation parameters
     aug_t = np.array((0.0, 0.0, 16.0, 16.0)) # Maximum translations: C, Z, Y, X
@@ -61,7 +68,7 @@ def main(argv):
             shutil.rmtree(output_path)
                     
         os.makedirs(output_path)
-        createDocumentation(output_path)
+        createDocumentation(output_path, target_paths)
 
     runCrossValidation(output_path, target_paths, I, save_step, B, R, do_train, metrics_only, start_k, end_k, aug_t, imageset_path, I_lower_lr)
     
@@ -152,9 +159,6 @@ def readStandardizationParameters(path_stand):
 # store them to file and write evaluation metrics.
 def runEvaluation(target_paths, val_index, I, save_step, checkpoint_path, subset_path, imageset_path):
 
-    output_path = subset_path + "eval/"
-    if not os.path.exists(output_path): os.makedirs(output_path)
-
     B = 8 # Batch size for predicting
     T = len(target_paths)
 
@@ -167,6 +171,13 @@ def runEvaluation(target_paths, val_index, I, save_step, checkpoint_path, subset
 
     # Get data loader for evaluation
     (dataset, img_names, _) = dataLoading.getDataset(target_paths, [val_index], aug_t=np.zeros(4), images_path=imageset_path, stand=stands)
+
+    if len(img_names) == 0:
+        print("Validation set is empty. Concluding training...")
+        sys.exit()
+
+    output_path = subset_path + "eval/"
+    if not os.path.exists(output_path): os.makedirs(output_path)
 
     params = {"batch_size": B,
               "shuffle":False,
@@ -207,7 +218,7 @@ def runEvaluation(target_paths, val_index, I, save_step, checkpoint_path, subset
     storeEvaluation.storePredictions(img_names, values_gt, values_out_means, values_out_vars, I, save_step, output_path, target_paths, stands)
 
 
-def createDocumentation(network_path):
+def createDocumentation(network_path, target_paths):
 
     os.makedirs(network_path + "documentation")
     for file in glob.glob("*.py"): shutil.copy(file, network_path + "documentation/")
@@ -220,6 +231,12 @@ def createDocumentation(network_path):
 
         os.makedirs(sub_path)
         for file in glob.glob(s + "/*.py"): shutil.copy(file, sub_path)
+
+    #
+    with open(network_path + "target_paths.txt", "w") as f:
+        for t in range(len(target_paths)):
+            f.write("{}\n".format(os.path.abspath(target_paths[t])))
+        
 
 
 if __name__ == '__main__':

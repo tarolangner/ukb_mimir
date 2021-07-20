@@ -8,17 +8,21 @@ import shutil
 def main(argv):
 
     imageset_path = "/home/taro/DL_imagesets/UKB_dual_projFF_uint8/"
-    split_path = "../splits/mimir_72_10fold/"
+    split_path = "../splits/mimir_72_traintest/"
 
+    #
+    description = "AtlasThighMuscle"
     field = "22409-2.0"
-    field_path = f"/media/taro/DATA/Taro/UKBiobank/extracted/fields/extracted_column_{field}.txt"
-    output_path = "../targets/UKB_dual_projFF_uint8_AtlasThighMuscle_10fold/"
+    unit = "L"
 
+    #
+    output_path = f"../targets/UKB_dual_projFF_uint8_{description}_traintest/"
+    field_path = f"/media/taro/DATA/Taro/UKBiobank/extracted/fields/extracted_column_{field}.txt"
+
+    #
     formatTarget(imageset_path, split_path, output_path, field_path)
 
     # Write documenting properties to be listed in network evaluation
-    description = "AtlasThighMuscle"
-    unit = "L"
     with open(output_path + "documentation.txt", "w") as f:
         f.write("description,field,unit\n")
         f.write("{},{},{}\n".format(description, field, unit))
