@@ -35,9 +35,9 @@ Similar to the step 2) above, split the training samples. In order to use all sa
 
 3) *Combine into inference module*
 Use *createInferenceModule.py* to combine the required files. The snapshot should be from the last iteration of the preceding step 2. The calibration factors, in contrast,
-should refer to a preceding cross-validation with the same configuration<sup>1</sup>.
+should refer to a preceding cross-validation with the same configuration.<sup>1</sup>
 
 
 
 ---
-<sup>1</sup>On the calibration factors: The neural network outputs a variance for each measurement that serves as uncertainty estimate. These values are typically too low to accurately describe prediction intervals. The implementation therefore provides target-wise scaling factors, by using a simple annealing search to achieve better calibration on the validation sets in cross-validation. These are assumed to also be approximately valid for a snapshot trained on all training samples, as used for inference modules.
+<sup>1</sup>On the calibration factors: For each prediction, the neural network outputs a variance that also serves as uncertainty estimate. These values are typically too low to accurately describe prediction intervals. The implementation therefore provides target-wise scaling factors, by using a simple annealing search to achieve better calibration on the validation sets in cross-validation. These are assumed to also be approximately valid for a snapshot trained on all training samples, as used for inference modules.

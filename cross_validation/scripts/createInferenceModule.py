@@ -90,9 +90,9 @@ def copyCalibrationFactors(path_calibration, path_out):
 
     #
     with open(path_out + "/calibration_factors.txt", "w") as f:
-        f.write("calibration_factor\n")
+        f.write("calibration_factor")
         for t in range(len(factors)):
-            f.write(f"{factors[t]}")
+            f.write(f"\n{factors[t]}")
 
 
 if __name__ == '__main__':
