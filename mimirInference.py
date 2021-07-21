@@ -13,43 +13,44 @@ import compressDicom
 
 def main(argv):
 
-    mainTest()
+    # Where to store results
+    path_out = "inference_results/inference_moduletest/"
 
+    # Input parameters
+    path_ids = "input_ids.txt" # List of subject ids
+    path_dicom_prefix = "/media/veracrypt1/UKB_DICOM/" # Path to DICOM files
 
-def mainTest():
+    # Get individual input DICOM paths
+    paths_dicoms = getDicomPaths(path_ids, path_dicom_prefix, "_20201_2_0.zip")
 
-    if True:
-        # Full inference run
-        path_ids = "/media/taro/DATA/Taro/UKBiobank/Return/QC/visit2/ids_good.txt"
-        with open(path_ids) as f: entries = f.readlines()
-        entries.pop(0)
-
-        ids = [f.split(",")[0].split("/")[-1].split(".")[0] for f in entries]
-        path_dicom_prefix = "/media/veracrypt1/UKB_DICOM/"
-        paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + "_20201_2_0.zip" for f in ids]
-
-        paths_dicoms = paths_dicoms[:100]
-
-    if False:
-        paths_dicoms = ["/media/taro/DATA/Taro/Projects/mimir/ukb_mimir/test_image/0000000_20201_2_0.zip"]
-
-    #paths_dicoms = paths_dicoms[:3000]
-
+    # Where to store 2d representations
     path_cache = "cached_images/"
 
+    # Inference batch size
+    B = 16
+
+    # Which modules to apply for inference
     paths_modules = [
-        "modules/module_organs/",
-        "modules/module_bodycomp/",
-        "modules/module_age/",
-        "modules/module_experimental/"
+        "modules/module_test/"
+        #"modules/module_organs/",
+        #"modules/module_bodycomp/",
+        #"modules/module_age/",
+        #"modules/module_experimental/"
     ]
 
-    path_out = "inference_results/inference_test100/"
-
-    B = 16
+    # Run inference
     infer(paths_dicoms, path_cache, paths_modules, path_out, B)
 
 
+##
+# For all chosen DICOMs:
+# -Check if 2d representations already exist at cache path
+# -For each subject with missing 2d image:
+#   -Load DICOM data
+#   -Fuse to volume (water and fat signal)
+#   -Generate 2d projections and fat fraction slice
+#   -Store to cache path
+# -Apply inference modules to all subjects
 def infer(paths_dicoms, path_cache, paths_modules, path_out, B):
 
     N = len(paths_dicoms)
@@ -73,6 +74,7 @@ def infer(paths_dicoms, path_cache, paths_modules, path_out, B):
     print("Total elapsed time: {}".format(time_end - time_start))
 
     
+# Apply each module for inference to all 2d images
 def applyModules(paths_img, path_cache, paths_modules, path_out, B):
 
     time_start = time.time()
@@ -179,34 +181,43 @@ def postProcessAndWrite(net_means, net_vars, path_module, paths_img, path_out):
         
             f.write("\n")
 
-  
+
+# Use the mean-variance regression network to make predictions
+# from the 2d images
 def applyNetwork(net, paths_img, B):
 
-    T = int(net.fc.out_features / 2)
+    # 
+    T = int(net.fc.out_features / 2) # Number of regression targets
+    N = len(paths_img) # Number of samples
 
+    # DataLoader for 2d images
     loader = getMipLoader(paths_img, B)
+    device = torch.device("cuda:0")
 
-    device = torch.device("cuda")
-
+    #
     net = net.to(device)
     net.eval()
 
-    N = len(paths_img)
+    # Reserve for predicted means and predicted variances.
+    # Shape is (number of samples, number of targets)
     net_means = np.zeros((N, T))
     net_vars = np.zeros((N, T))
 
+    #
     idx_start = 0
     idx_end = 0
 
+    #
     with torch.no_grad():
 
         for X in loader:
 
+            # Predict for batch
             X = X.to(device)
-
             out = net(X)
 
-            # Convert to (B, T, 2)
+            # Convert to (B, T, 2), with the latter 
+            # being predicted mean and variance
             out = out.view(out.size(0), int(out.size(1)//2), 2)
 
             # Transform log(variances) to variances
@@ -215,6 +226,7 @@ def applyNetwork(net, paths_img, B):
             # Write batch results to output vectors
             idx_end = idx_start + out.size(0)
 
+            #
             out = out.cpu().data[:].numpy()
             net_means[idx_start:idx_end, :] = out[:, :, 0]
             net_vars[idx_start:idx_end, :] = out[:, :, 1]
@@ -223,10 +235,13 @@ def applyNetwork(net, paths_img, B):
 
     del loader
 
-    # Note that these are still in standardized space
+    # Return predictions 
+    # (Note that these are still in standardized space)
     return (net_means, net_vars)
 
 
+# DataLoader for 2d MIPs 
+# (mean intensity projection images with fat fraction slices)
 def getMipLoader(paths_img, B):
 
     dataset = MipDataset(paths_img)
@@ -282,7 +297,8 @@ def loadModuleNet(path_module):
     return net
 
 
-# Ensure that all input DICOMs have a compressed 2d representation in the cache folder.
+# Check if 2d images exist for all subjects
+# For those missing, create new ones from DICOM
 def prepareCache(paths_dicoms, path_cache):
 
     time_start = time.time()
@@ -328,28 +344,7 @@ def prepareCache(paths_dicoms, path_cache):
     return paths_img
 
 
-def cacheImagesOld(paths_uncached, path_cache):
-
-    names = [os.path.basename(f).split(".")[0] for f in paths_uncached]
-
-    names_failed = []
-
-    N = len(paths_uncached)
-
-    for i in range(N):
-
-        print("        Compressing image {0} ({1:0.1f}% done)".format(i+1, 100* i / N))
-
-        try:
-            #print(names[i])
-            compressDicom.compressToMip(paths_uncached[i], path_cache + names[i] + ".npy")
-        except:
-            names_failed.append(names[i])
-            print("            ERROR: Compression of DICOM failed: {}".format(names_failed[i]))
-
-    return names_failed
-
-
+# DataLoader for compressed UK Biobank DICOM
 def getDicomLoader(paths_dicom):
 
     dataset = compressDicom.DicomDataset(paths_dicom)
@@ -364,6 +359,7 @@ def getDicomLoader(paths_dicom):
     return loader
 
 
+# Load specified DICOMs and compress volumes to 2d
 def cacheImages(paths_uncached, path_cache):
 
     loader = getDicomLoader(paths_uncached)
@@ -388,6 +384,21 @@ def cacheImages(paths_uncached, path_cache):
 
 
     return names_failed
+
+
+def getDicomPaths(path_ids, path_dicom_prefix, dicom_suffix):
+
+    # Read ids
+    with open(path_ids) as f: entries = f.readlines() 
+    entries.pop(0)
+
+    # Convert to DICOM paths
+    ids = [f.split(",")[0].split("/")[-1].split(".")[0] for f in entries]
+    paths_dicoms = [path_dicom_prefix + f.replace("\n", "") + dicom_suffix for f in ids]
+
+    #paths_dicoms = paths_dicoms[:100] # select only first 100 for testing
+
+    return paths_dicoms
 
 
 if __name__ == '__main__':
