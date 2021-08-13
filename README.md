@@ -17,7 +17,7 @@ This PyTorch implementation can be applied to neck-to-knee body MRI of UK Bioban
 
 2) *Which properties can the inference predict?*
 
-This inference engine can estimate sex, age, height, weight, and several emulated measurements together with individual confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation [here](https://github.com/tarolangner/ukb_mimir/blob/main/documentation/validation/mimir_validation.pdf).
+This inference engine can estimate sex, age, height, weight, and several emulated measurements together with individual confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation [here](https://github.com/tarolangner/ukb_mimir/blob/main/documentation/validation_results/mimir_validation.pdf).
 
 3) *How to get image data?*
 
