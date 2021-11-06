@@ -15,7 +15,7 @@ Learn more about [the UK Biobank Imaging Study](https://www.nature.com/articles/
 
 This PyTorch implementation can be downloaded and run on neck-to-knee body MRI of UK Biobank to estimate and emulate various measurements. Note that this experimental software is used at your own risk, is provided with no guarantees of anything, and is not a certified medical diagnostic tool.
 
-2) *Which properties can the inference predict?*
+2) *Which properties can it predict?*
 
 This inference engine can estimate sex, age, height, weight, and several emulated body composition measurements together with individual confidence intervals. Find a full list of regression targets and results of 10-fold cross-validation [here](https://github.com/tarolangner/ukb_mimir/blob/main/documentation/validation_results/mimir_validation.pdf).
 
@@ -34,7 +34,7 @@ In a nut shell, the inference engine compresses the volumetric MRI to a 2d forma
 
 6) *How was it created and validated?*
 
-Code for training and evaluating the underlying code is provided in the *cross_validation* sudirectory, together with additional documentation.
+Code for training and evaluating the underlying code is provided in the *cross_validation* subdirectory, together with additional documentation.
 
 7) *I have technical/ethical/spiritual concerns and wish to speak to the manager*
 
@@ -47,7 +47,7 @@ You can try the contact details listed at the end of this file.
 1) Download the inference modules from [the shared folder at Uppsala Sunet Box](https://uppsala.box.com/s/k04jl8npr3792urscue2u4ov47jmeahb).
 Unpack them into "modules/".
 
-2) Optionally, download UK Biobank Return dataset 3072 for annotations of the UK Biobank neck-to-knee body MRI. It contains annotations for all those cases with artefacts that should be excluded.
+2) Optionally, download UK Biobank Return dataset 3072 for annotations of the UK Biobank neck-to-knee body MRI. It lists subject IDs with artefacts that should be excluded.
 
 3) In *mimirInference.py* call *infer* with:
     * A list of paths to the UK Biobank neck-to-knee body MRI dicom files (field 20201)

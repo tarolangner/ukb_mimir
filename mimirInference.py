@@ -14,7 +14,7 @@ import compressDicom
 def main(argv):
 
     # Where to store results
-    path_out = "inference_results/inference_moduletest/"
+    path_out = "inference_moduletest/"
 
     # Input parameters
     path_ids = "input_ids.txt" # List of subject ids
@@ -31,11 +31,10 @@ def main(argv):
 
     # Which modules to apply for inference
     paths_modules = [
-        "modules/module_test/"
-        #"modules/module_organs/",
-        #"modules/module_bodycomp/",
-        #"modules/module_age/",
-        #"modules/module_experimental/"
+        "modules/module_organs/",
+        "modules/module_bodycomp/",
+        "modules/module_age/",
+        "modules/module_experimental/"
     ]
 
     # Run inference
@@ -87,6 +86,8 @@ def applyModules(paths_img, path_cache, paths_modules, path_out, B):
         print("Applying inference module from {}".format(paths_modules[i]))
         print("    Initializing network...")
         net = loadModuleNet(paths_modules[i])
+
+        if net is None: continue
 
         # Neural network inference
         print("    Performing inference on {} images...".format(len(paths_img)))
@@ -277,6 +278,12 @@ class MipDataset(data.Dataset):
 
 
 def loadModuleNet(path_module):
+
+    if not os.path.exists(path_module):
+        print(f"ERROR: No inference module found at {path_module}")
+        print("INFO: Inference modules are availble as a separate download, see Readme.md")
+        print("INFO: This module will be skipped, but all cached images remain saved")
+        return None
 
     # Get number of targets from metadata
     path_meta = path_module + "/metadata.txt"
