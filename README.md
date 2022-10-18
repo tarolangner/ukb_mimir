@@ -58,4 +58,4 @@ Unpack them into "modules/".
 
 ---
 
-For any questions and feedback, feel free to contact taro.langner(at).surgsci.uu.se
+For any questions and feedback, feel free to contact taro.langner(at)gmail.com
