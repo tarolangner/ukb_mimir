@@ -163,7 +163,7 @@ def runEvaluation(target_paths, val_index, I, save_step, checkpoint_path, subset
     T = len(target_paths)
 
     # Load pretrained resnet50 and replace final fully-connected layer
-    net = models.resnet50(pretrained=True)
+    net = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
     net.fc = nn.Linear(net.fc.in_features, T * 2) # T * 2 for mean and variance
 
     # Read standardization
